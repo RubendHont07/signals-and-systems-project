@@ -49,16 +49,35 @@ st.title("📸 Signals and Systems Project (4CA20)")
 st.subheader("2D Discrete Fourier Transform - Image Sharpness Filter")
 st.write("Upload a batch of photos. This application analyzes high frequencies in the frequency domain to determine if the photos are sharp or blurry.")
 
-# The interactive slider for the classification threshold
+st.write("---")
+
+# =========================================================================
+# THE INTERACTIVE SLIDER (WITH VISUAL LABELS)
+# =========================================================================
+st.write("### Filter Settings")
+
+# We create three columns to neatly align the red and green text to the left and right
+col1, col2, col3 = st.columns([1, 1, 1])
+with col1:
+    st.markdown("<p style='text-align: left; color: #ff4b4b; font-weight: bold;'>🔴 Tolerant (More Blurry)</p>", unsafe_allow_html=True)
+with col3:
+    st.markdown("<p style='text-align: right; color: #00cc66; font-weight: bold;'>🟢 Strict (Only Sharp)</p>", unsafe_allow_html=True)
+
+# The slider itself
 classification_threshold = st.slider(
-    "Select the classification threshold", 
+    "Select the classification threshold:", 
     min_value=0.010, 
     max_value=0.150, 
-    value=0.055, # Your original threshold value
+    value=0.055, 
     step=0.005,
-    help="Higher values mean images must have more high-frequency content (be sharper) to pass the filter."
+    label_visibility="collapsed" # Hides the default text so our colored text stands out more
 )
 
+st.write("---")
+
+# =========================================================================
+# FILE UPLOAD & PROCESSING
+# =========================================================================
 # File uploader
 uploaded_files = st.file_uploader(
     "Drag and drop your images here...", 
@@ -67,11 +86,11 @@ uploaded_files = st.file_uploader(
 )
 
 if uploaded_files:
-    st.write(f"📊 **Analyzing {len(uploaded_files)} images...**")
+    st.write(f"📊 **Analyzing {len(uploaded_files)} images using a threshold of {classification_threshold}...**")
     
     sharp_images = []
     
-    # Create a grid of 3 columns for displaying the sharp images
+    # Create a grid of 3 columns for displaying the sharp images neatly
     cols = st.columns(3)
     col_idx = 0
     
@@ -80,7 +99,7 @@ if uploaded_files:
         score = calculate_dft_blur_score(file_bytes)
         
         if score is not None:
-            # IMPORTANT: Verdict is determined ONLY from the DFT blur score.
+            # FILTERING LOGIC: Check image score against the live slider
             if score >= classification_threshold:
                 sharp_images.append((file.name, file_bytes))
                 
