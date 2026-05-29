@@ -63,15 +63,19 @@ with col1:
 with col3:
     st.markdown("<p style='text-align: right; color: #00cc66; font-weight: bold;'>🟢 Strict (Only Sharp)</p>", unsafe_allow_html=True)
 
-# The slider itself
-classification_threshold = st.slider(
+# The slider itself visually goes from 0 to 100%
+slider_percentage = st.slider(
     "Select the classification threshold:", 
-    min_value=0.010, 
-    max_value=0.150, 
-    value=0.055, 
-    step=0.005,
-    label_visibility="collapsed" # Hides the default text so our colored text stands out more
+    min_value=0, 
+    max_value=100, 
+    value=32, # 32% maps roughly to your original 0.055 threshold
+    step=1,
+    format="%d%%",
+    label_visibility="collapsed" 
 )
+
+# Under the hood, we convert the 0-100% scale back to the 0.010-0.150 scale your algorithm needs
+classification_threshold = 0.010 + (slider_percentage / 100.0) * (0.150 - 0.010)
 
 st.write("---")
 
@@ -86,7 +90,7 @@ uploaded_files = st.file_uploader(
 )
 
 if uploaded_files:
-    st.write(f"📊 **Analyzing {len(uploaded_files)} images using a threshold of {classification_threshold}...**")
+    st.write(f"📊 **Analyzing {len(uploaded_files)} images using a strictness of {slider_percentage}%...**")
     
     sharp_images = []
     
@@ -99,7 +103,7 @@ if uploaded_files:
         score = calculate_dft_blur_score(file_bytes)
         
         if score is not None:
-            # FILTERING LOGIC: Check image score against the live slider
+            # FILTERING LOGIC: Check image score against the mapped threshold
             if score >= classification_threshold:
                 sharp_images.append((file.name, file_bytes))
                 
